@@ -17,6 +17,7 @@
 #include <ns_address.h>
 
 class INetChannel;
+class CNetMessage;
 class CNetworkGameClient;
 class CClientChangelevelState;
 class CGlobalVars;
@@ -45,7 +46,8 @@ public:
 	virtual void *unk010() = 0;
 	virtual void SetFrameTime(float flFrameTime) = 0;
 	virtual void Connect(int nSplitScreenSlot, int nUnk, const void *pAddr) = 0;
-	virtual void Disconnect(/*ENetworkDisconnectionReason*/ int reason) = 0;
+	virtual void DisconnectGame(/*ENetworkDisconnectionReason*/ int reason) = 0;
+	void Disconnect( int reason ) { DisconnectGame( reason ); }
 	virtual void *unk014() = 0;
 	virtual void *unk015() = 0;
 	virtual void *unk016() = 0;
@@ -55,7 +57,8 @@ public:
 	virtual void *unk020() = 0;
 	virtual void *unk021() = 0;
 	virtual void ClientPollNetworking(const void *pEvent) = 0;
-	virtual void ClientProcessNetworking(const void *pEvent) = 0;
+	virtual void _ProcessNetworking(const void *pEvent) = 0;
+	void ClientProcessNetworking( const void *pEvent ) { _ProcessNetworking( pEvent ); }
 	virtual void *unk024() = 0;
 	virtual void OnClientFrameSimulate(const void *pEvent) = 0;
 	virtual void OnClientAdvanceTick(const void *pEvent) = 0;
@@ -114,12 +117,16 @@ public:
 	virtual void *unk069() = 0;
 	virtual void *unk070() = 0;
 	virtual void *unk071() = 0;
+#ifdef PLATFORM_LINUX
+	// Secondary-base destructor overrides also occupy the Itanium primary table.
+	virtual ~CNetworkGameClientBase() = 0;
+#endif
 	virtual void *unk072() = 0;
 	virtual void ApplyClockDrift(int nServerTick, int nClientTick) = 0;
 	virtual void *unk074() = 0;
 	virtual void *unk075() = 0;
 	virtual void *unk076() = 0;
-	virtual void *unk077() = 0;
+	virtual void CreateMove() = 0;
 	virtual void *unk078() = 0;
 	virtual void *unk079() = 0;
 	virtual void *unk080() = 0;
@@ -128,35 +135,41 @@ public:
 	virtual void *unk083() = 0;
 	virtual void *unk084() = 0;
 	virtual void *unk085() = 0;
+#ifdef PLATFORM_LINUX
+	// These secondary-base overrides have separate vfptrs on Windows.
+	virtual bool FilterMessage( const CNetMessage *pData, INetChannel *pChannel ) = 0;
+	virtual void OnShutdownChannel( INetChannel *pChannel, bool bUnexpected ) = 0;
+	virtual void unkLinux090() = 0;
+#endif
 	virtual void *unk086() = 0;
 	virtual void *unk087() = 0;
+	virtual void Unk_RegisterNetMessages( void *p ) = 0;
 	virtual void ProcessTick(const void *msg) = 0;
 	virtual void ProcessStringCmd(const void *msg) = 0;
 	virtual void ProcessSetConVar(const void *msg) = 0;
 	virtual void ProcessSignonState(const void *msg) = 0;
-	virtual void *unk092() = 0;
+	virtual void *unk093() = 0;
 	virtual void ProcessSpawnGroup_Load(const void *msg) = 0;
 	virtual void ProcessSpawnGroup_ManifestUpdate(const void *msg) = 0;
 	virtual void ProcessSpawnGroup_Unload(const void *msg) = 0;
 	virtual void ProcessSpawnGroup_SetCreationTick(const void *msg) = 0;
-	virtual void *unk097() = 0;
 	virtual void *unk098() = 0;
 	virtual void *unk099() = 0;
 	virtual void *unk100() = 0;
+	virtual void *unk101() = 0;
 	virtual void ProcessServerInfo(const void *msg) = 0;
 	virtual void ProcessClassInfo(const void *msg) = 0;
-	virtual void *unk103() = 0;
 	virtual void *unk104() = 0;
 	virtual void *unk105() = 0;
 	virtual void *unk106() = 0;
 	virtual void *unk107() = 0;
+	virtual void *unk108() = 0;
 	virtual void ProcessCreateStringTable(const void *msg) = 0;
 	virtual void ProcessUpdateStringTable(const void *msg) = 0;
-	virtual void *unk110() = 0;
 	virtual void *unk111() = 0;
+	virtual void ProcessPacketEntities(const void *msg) = 0;
 	virtual void ProcessSplitScreen(const void *msg) = 0;
 	virtual void ProcessCmdKeyValues(const void *msg) = 0;
-	virtual void *unk114() = 0;
 	virtual void *unk115() = 0;
 	virtual void *unk116() = 0;
 	virtual void *unk117() = 0;
@@ -169,28 +182,35 @@ public:
 	virtual void *unk124() = 0;
 	virtual void *unk125() = 0;
 	virtual void *unk126() = 0;
+	virtual void *unk127() = 0;
 	virtual void ProcessHltvReplay(const void *msg) = 0;
-	virtual void *unk128() = 0;
 	virtual void *unk129() = 0;
+	virtual void *unk130() = 0;
+	virtual bool Unk_ProcessPacketEntities( const void *msg ) = 0;
 	virtual void Clear(bool bUnk) = 0;
 	virtual void FullConnect(const void *pAddr) = 0;
 	virtual void SetSignonState(/*SignonState_t*/ int state, int nUnk, const void *pMsg) = 0;
-	virtual void *unk133() = 0;
-	virtual void *unk134() = 0;
-	virtual void InstallStringTableCallbacks(const char *pszTableName) = 0;
-	virtual void *unk136() = 0;
-	virtual void ProcessPacketEntities(const void *msg) = 0;
+	virtual void *unk135() = 0;
+	virtual void InstallStringTableCallback(const char *pszTableName) = 0;
+	void InstallStringTableCallbacks( const char *pszTableName ) { InstallStringTableCallback( pszTableName ); }
+	virtual void HookClientStringTable( void *p ) = 0;
+	virtual void *unk138() = 0;
+	virtual void ProcessReadPacketEntitiesWorkItems( void *p ) = 0;
 	virtual void OnPreserveEntity(void *pReadInfo) = 0;
 	virtual void CopyNewEntity(void *pReport, void *pReadInfo, void *pClientClass, int nUnk, unsigned int nUnk2) = 0;
 	virtual void CopyExistingEntity(void *pReport, void *pReadInfo) = 0;
 	virtual void OnReceivedUncompressedPacket() = 0;
-	virtual void *unk142() = 0;
+	virtual void *unk144() = 0;
 };
 
-// The most-derived client class. Overrides a handful of base virtuals but
-// adds no new vtable slots, so it is layout-compatible with the base.
+// The primary-table declaration omits the secondary base subobjects.
 class CNetworkGameClient : public CNetworkGameClientBase
 {
+#ifdef PLATFORM_LINUX
+public:
+	virtual void OnSwitchLoopModeFinished( const char *pszLoopMode, uint32 nLoopModeId, bool bSuccess ) = 0;
+#endif
+
 private:
 	char pad_0[ 200 ];
 public:
