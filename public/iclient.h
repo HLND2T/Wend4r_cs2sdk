@@ -139,7 +139,7 @@ public:
 	// These secondary-base overrides have separate vfptrs on Windows.
 	virtual bool FilterMessage( const CNetMessage *pData, INetChannel *pChannel ) = 0;
 	virtual void OnShutdownChannel( INetChannel *pChannel, bool bUnexpected ) = 0;
-	virtual void unkLinux090() = 0;
+	// AMNOTE: The extra linux-only slot that used to follow OnShutdownChannel was removed in 14197
 #endif
 	virtual void *unk086() = 0;
 	virtual void *unk087() = 0;
