@@ -116,7 +116,11 @@ public:
 	virtual void *unk068() = 0;
 	virtual void *unk069() = 0;
 	virtual void *unk070() = 0;
+#if !defined( COMPILER_MSVC )
+	// AMNOTE: 14197's MSVC primary table is one slot shorter here than the Itanium one, so this
+	// placeholder only exists for the Itanium ABI.
 	virtual void *unk071() = 0;
+#endif
 #ifdef PLATFORM_LINUX
 	// Secondary-base destructor overrides also occupy the Itanium primary table.
 	virtual ~CNetworkGameClientBase() = 0;
